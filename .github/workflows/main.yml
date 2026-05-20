@@ -1,0 +1,16 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches:
+      - main
+      - qa
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
