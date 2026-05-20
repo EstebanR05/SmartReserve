@@ -12,8 +12,8 @@ using SistemaReservas.Web.Data;
 namespace SistemaReservas.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260520174530_AddRbacAndMultiTenant")]
-    partial class AddRbacAndMultiTenant
+    [Migration("20260520184259_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -473,6 +473,90 @@ namespace SistemaReservas.Web.Migrations
                     b.HasIndex("Name");
 
                     b.ToTable("TouristSites", (string)null);
+                });
+
+            modelBuilder.Entity("SistemaReservas.Web.Models.Queries.AvailableUnitQueryResult", b =>
+                {
+                    b.Property<string>("AccommodationType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("AccommodationUnitId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Bedrooms")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxCapacity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UnitCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UnitName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable((string)null);
+
+                    b.ToView(null, (string)null);
+                });
+
+            modelBuilder.Entity("SistemaReservas.Web.Models.Queries.RateCalculationQueryResult", b =>
+                {
+                    b.Property<int>("Nights")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoomCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("SubtotalPerNight")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.ToTable((string)null);
+
+                    b.ToView(null, (string)null);
+                });
+
+            modelBuilder.Entity("SistemaReservas.Web.Models.Queries.RateQueryResult", b =>
+                {
+                    b.Property<string>("AccommodationType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("AdditionalPersonPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("BasePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("MaxPeople")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinPeople")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RatePlanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SeasonName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SiteName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UnitName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable((string)null);
+
+                    b.ToView(null, (string)null);
                 });
 
             modelBuilder.Entity("SistemaReservas.Web.Models.Security.AccessModule", b =>

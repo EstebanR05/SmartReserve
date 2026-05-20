@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SistemaReservas.Web.Models.Domain;
+using SistemaReservas.Web.Models.Queries;
 using SistemaReservas.Web.Models.Security;
 
 namespace SistemaReservas.Web.Data;
@@ -27,6 +28,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RatePlan> RatePlans => Set<RatePlan>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<ReservationUnit> ReservationUnits => Set<ReservationUnit>();
+    public DbSet<AvailableUnitQueryResult> AvailableUnitQueryResults => Set<AvailableUnitQueryResult>();
+    public DbSet<RateQueryResult> RateQueryResults => Set<RateQueryResult>();
+    public DbSet<RateCalculationQueryResult> RateCalculationQueryResults => Set<RateCalculationQueryResult>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -328,6 +332,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany(x => x.ReservationUnits)
                 .HasForeignKey(x => x.AccommodationUnitId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<AvailableUnitQueryResult>().HasNoKey().ToView(null);
+        builder.Entity<RateQueryResult>(entity =>
+        {
+            entity.HasNoKey().ToView(null);
+            entity.Property(x => x.BasePrice).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.AdditionalPersonPrice).HasColumnType("decimal(18,2)");
+        });
+        builder.Entity<RateCalculationQueryResult>(entity =>
+        {
+            entity.HasNoKey().ToView(null);
+            entity.Property(x => x.SubtotalPerNight).HasColumnType("decimal(18,2)");
+            entity.Property(x => x.TotalAmount).HasColumnType("decimal(18,2)");
         });
     }
 }
