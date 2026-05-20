@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "SistemaReservas.Web/1.0.0": {
+        "runtime": {
+          "SistemaReservas.Web.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "SistemaReservas.Web/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
