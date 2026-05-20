@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/estebanr/projects/SmartReserve/SistemaReservas.Web/SistemaReservas.Web.csproj",
+      "projectUniqueName": "/home/estebanr/projects/SmartReserve/src/SistemaReservas.Web/SistemaReservas.Web.csproj",
       "projectName": "SistemaReservas.Web",
-      "projectPath": "/home/estebanr/projects/SmartReserve/SistemaReservas.Web/SistemaReservas.Web.csproj",
+      "projectPath": "/home/estebanr/projects/SmartReserve/src/SistemaReservas.Web/SistemaReservas.Web.csproj",
       "packagesPath": "/home/estebanr/.nuget/packages/",
-      "outputPath": "/home/estebanr/projects/SmartReserve/SistemaReservas.Web/obj/",
+      "outputPath": "/home/estebanr/projects/SmartReserve/src/SistemaReservas.Web/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/estebanr/.nuget/NuGet/NuGet.Config"
