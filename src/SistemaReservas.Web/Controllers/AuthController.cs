@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using SistemaReservas.Web.Contracts.Auth;
+using SistemaReservas.Web.Data;
 using SistemaReservas.Web.Models.Auth;
 using SistemaReservas.Web.Models.Security;
 using SistemaReservas.Web.Services.Interfaces;
@@ -18,15 +19,18 @@ public class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
     private readonly IAuthRecoveryService _authRecoveryService;
+    private readonly ApplicationDbContext _dbContext;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         IConfiguration configuration,
-        IAuthRecoveryService authRecoveryService)
+        IAuthRecoveryService authRecoveryService,
+        ApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _configuration = configuration;
         _authRecoveryService = authRecoveryService;
+        _dbContext = dbContext;
     }
 
     [HttpPost("register")]
@@ -38,11 +42,25 @@ public class AuthController : ControllerBase
             return BadRequest(new AuthResponse { Success = false, Message = "Email already registered." });
         }
 
+        var business = new Business
+        {
+            Name = request.BusinessName,
+            Address = request.BusinessAddress,
+            Phone = request.BusinessPhone
+        };
+
+        _dbContext.Businesses.Add(business);
+
         var user = new ApplicationUser
         {
             UserName = request.Email,
             Email = request.Email,
-            Name = request.Email
+            Name = request.Name,
+            LastName = request.LastName,
+            PhoneNumber = request.Phone,
+            Address = request.Address,
+            Business = business,
+            UserType = "ADMIN"
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -52,7 +70,9 @@ public class AuthController : ControllerBase
             return BadRequest(new AuthResponse { Success = false, Message = errors });
         }
 
-        return Ok(new AuthResponse { Success = true, Message = "User registered successfully." });
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(new AuthResponse { Success = true, Message = "Account and business created successfully." });
     }
 
     [HttpPost("login")]

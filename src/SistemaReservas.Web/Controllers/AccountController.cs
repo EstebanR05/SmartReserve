@@ -7,4 +7,6 @@ public class AccountController : Controller
     public IActionResult SignIn() => View();
 
     public IActionResult Register() => View();
+
+    public IActionResult Recovery() => View();
 }

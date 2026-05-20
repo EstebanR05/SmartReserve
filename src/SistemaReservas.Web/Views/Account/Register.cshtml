@@ -1,28 +1,49 @@
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Sign Up";
 }
 
-<section class="page-header">
-    <h1>Create Account</h1>
-    <p>Register to start using SmartReserve.</p>
-</section>
+<section class="auth-shell">
+    <div class="auth-card-split">
+        <article class="auth-pane auth-form-pane">
+            <div class="auth-heading">
+                <h1>Create account</h1>
+                <p>Register your company and administrator user.</p>
+            </div>
 
-<section class="form-grid single auth-wrapper">
-    <article class="form-card auth-card">
-        <h2>New user registration</h2>
-        <form id="registerForm" class="stack-form">
-            <label>Email<input type="email" name="email" required /></label>
-            <label>Password<input type="password" name="password" required /></label>
-            <button type="submit">Register</button>
-        </form>
+            <form id="registerForm" class="stack-form auth-form">
+                <label>Business name<input type="text" name="businessName" required /></label>
+                <label>Business address<input type="text" name="businessAddress" /></label>
+                <label>Business phone<input type="text" name="businessPhone" /></label>
 
-        <p class="small-note">Already have an account? <a asp-controller="Account" asp-action="SignIn">Sign in here</a>.</p>
-    </article>
-</section>
+                <label>First name<input type="text" name="name" required /></label>
+                <label>Last name<input type="text" name="lastName" /></label>
+                <label>Email<input type="email" name="email" placeholder="you@example.com" required /></label>
+                <label>Phone<input type="text" name="phone" /></label>
+                <label>Address<input type="text" name="address" /></label>
+                <label>Password<input type="password" name="password" placeholder="Create a secure password" required /></label>
 
-<section class="result-section">
-    <h2>Response</h2>
-    <pre id="authResult" class="result-box"></pre>
+                <button type="submit">Create account</button>
+            </form>
+
+            <div id="authResult" class="auth-feedback"></div>
+            <p class="small-note auth-note">Already have an account? <a asp-controller="Account" asp-action="SignIn">Sign in</a></p>
+        </article>
+
+        <aside class="auth-pane auth-visual-pane">
+            <div class="auth-illustration">
+                <div class="stat-card">
+                    <span class="dot"></span>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+                <div class="chart-wave"></div>
+                <div class="auth-badge">Business Setup</div>
+            </div>
+            <h2>Launch your workspace</h2>
+            <p>Register your company and start operating with a structured backend.</p>
+        </aside>
+    </div>
 </section>
 
 @section Scripts {

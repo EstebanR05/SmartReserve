@@ -1,35 +1,13 @@
 @{
-    ViewData["Title"] = "Portal";
+    ViewData["Title"] = "Dashboard";
 }
 
-<section class="portal-hero">
-    <h1>SmartReserve Backend Test Portal</h1>
-    <p>Use these views to test authentication, availability, rates, and reservations against the current backend APIs.</p>
-    <div class="actions-row">
+<section class="dashboard-shell">
+    <div class="dashboard-card">
+        <h1>Dashboard</h1>
+        <p>This area is ready for your next modules.</p>
         <button type="button" class="secondary" id="logoutBtn">Sign Out</button>
     </div>
-</section>
-
-<section class="portal-grid">
-    <a class="portal-card" asp-controller="Portal" asp-action="Auth">
-        <h2>Authentication</h2>
-        <p>Register, login, and password recovery testing.</p>
-    </a>
-
-    <a class="portal-card" asp-controller="Portal" asp-action="Availability">
-        <h2>Availability</h2>
-        <p>Search available accommodation units by date and capacity.</p>
-    </a>
-
-    <a class="portal-card" asp-controller="Portal" asp-action="Rates">
-        <h2>Rates</h2>
-        <p>Query rate plans and calculate final amounts.</p>
-    </a>
-
-    <a class="portal-card" asp-controller="Portal" asp-action="Reservations">
-        <h2>Reservations</h2>
-        <p>Create, list, and cancel reservations for the authenticated user.</p>
-    </a>
 </section>
 
 @section Scripts {

@@ -1,24 +1,22 @@
 @{
-    ViewData["Title"] = "Sign In";
+    ViewData["Title"] = "Recovery";
 }
 
 <section class="auth-shell">
     <div class="auth-card-split">
         <article class="auth-pane auth-form-pane">
             <div class="auth-heading">
-                <h1>Sign in</h1>
-                <p>Access your SmartReserve account.</p>
+                <h1>Password recovery</h1>
+                <p>Enter your email and we will send a recovery message.</p>
             </div>
 
-            <form id="loginForm" class="stack-form auth-form">
+            <form id="forgotPasswordForm" class="stack-form auth-form">
                 <label>Email<input type="email" name="email" placeholder="you@example.com" required /></label>
-                <label>Password<input type="password" name="password" placeholder="Enter your password" required /></label>
-                <button type="submit">Login</button>
+                <button type="submit" class="secondary">Send recovery email</button>
             </form>
 
             <div id="authResult" class="auth-feedback"></div>
-            <p class="small-note auth-note">Forgot your password? <a asp-controller="Account" asp-action="Recovery">Recover account</a></p>
-            <p class="small-note auth-note">No account yet? <a asp-controller="Account" asp-action="Register">Sign up</a></p>
+            <p class="small-note auth-note">Remembered your password? <a asp-controller="Account" asp-action="SignIn">Sign in</a></p>
         </article>
 
         <aside class="auth-pane auth-visual-pane">
@@ -30,10 +28,10 @@
                     <div></div>
                 </div>
                 <div class="chart-wave"></div>
-                <div class="auth-badge">Secure Access</div>
+                <div class="auth-badge">Recovery</div>
             </div>
-            <h2>Welcome back</h2>
-            <p>Sign in to continue managing your business and reservations.</p>
+            <h2>Account protection</h2>
+            <p>Security first. Recover access safely and continue your work.</p>
         </aside>
     </div>
 </section>
@@ -41,6 +39,6 @@
 @section Scripts {
     <script src="~/js/portal.js" asp-append-version="true"></script>
     <script>
-        SmartReservePortal.initSignInPage();
+        SmartReservePortal.initRecoveryPage();
     </script>
 }
