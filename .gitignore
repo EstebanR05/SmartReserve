@@ -1,7 +1,36 @@
+# Build artifacts
 bin/
 obj/
-.vs/
+out/
+
+# User-specific files
 *.user
+*.rsuser
 *.suo
+
+# IDE / Editor
+.vs/
+.vscode/
+.idea/
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment and local secrets
 .env
+.env.*
+!.env.example
+
+# ASP.NET Core user secrets (local machine)
+secrets.json
+
+# Test and coverage outputs
+TestResults/
+coverage/
+
+# Docker overrides (local)
+docker-compose.override.yml
