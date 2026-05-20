@@ -2,6 +2,8 @@
 bin/
 obj/
 out/
+Debug/
+Release/
 
 # User-specific files
 *.user
@@ -19,6 +21,9 @@ Thumbs.db
 
 # Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Environment and local secrets
 .env
@@ -31,6 +36,11 @@ secrets.json
 # Test and coverage outputs
 TestResults/
 coverage/
+*.coverage
+*.coveragexml
 
 # Docker overrides (local)
 docker-compose.override.yml
+
+# EF Core local migration bundles
+efbundle*

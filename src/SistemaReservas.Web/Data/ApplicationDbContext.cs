@@ -34,6 +34,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         
         builder.Entity<ApplicationUser>(entity =>
         {
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_AspNetUsers_UserType",
+                "[UserType] IN ('SUPER_ADMIN','ADMIN','EMPLOYEE','CONDUCTOR')"));
             entity.Property(x => x.Name).HasMaxLength(255).IsRequired();
             entity.Property(x => x.LastName).HasMaxLength(255);
             entity.Property(x => x.Address).HasMaxLength(255);
@@ -45,8 +48,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(x => x.DeletedBy);
             entity.Property(x => x.CreatedAt).HasDefaultValueSql("SYSDATETIME()");
             entity.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSDATETIME()");
-            entity.HasCheckConstraint("CK_AspNetUsers_UserType", "[UserType] IN ('SUPER_ADMIN','ADMIN','EMPLOYEE','CONDUCTOR')");
-
             entity.HasOne(x => x.Business)
                 .WithMany(x => x.Users)
                 .HasForeignKey(x => x.BusinessId)
@@ -96,14 +97,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<AccessRole>(entity =>
         {
-            entity.ToTable("access_roles");
+            entity.ToTable("access_roles", t => t.HasCheckConstraint(
+                "CK_access_roles_roleType",
+                "[RoleType] IN ('ADMIN','EMPLOYEE')"));
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Name).HasMaxLength(255).IsRequired();
             entity.Property(x => x.Description).HasMaxLength(500);
             entity.Property(x => x.RoleType).HasMaxLength(50).HasDefaultValue("EMPLOYEE");
             entity.Property(x => x.CreatedAt).HasDefaultValueSql("SYSDATETIME()");
             entity.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSDATETIME()");
-            entity.HasCheckConstraint("CK_access_roles_roleType", "[RoleType] IN ('ADMIN','EMPLOYEE')");
             entity.HasIndex(x => x.SucursalId);
 
             entity.HasOne(x => x.Sucursal)
@@ -132,14 +134,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         builder.Entity<AccessModule>(entity =>
         {
-            entity.ToTable("access_modules");
+            entity.ToTable("access_modules", t => t.HasCheckConstraint(
+                "CK_access_modules_view",
+                "[View] IN ('DASHBOARD','SETTINGS')"));
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Name).HasMaxLength(255).IsRequired();
             entity.Property(x => x.Description).HasMaxLength(500);
             entity.Property(x => x.View).HasMaxLength(50).HasDefaultValue("DASHBOARD");
             entity.Property(x => x.CreatedAt).HasDefaultValueSql("SYSDATETIME()");
             entity.Property(x => x.UpdatedAt).HasDefaultValueSql("SYSDATETIME()");
-            entity.HasCheckConstraint("CK_access_modules_view", "[View] IN ('DASHBOARD','SETTINGS')");
             entity.HasIndex(x => x.SucursalId);
 
             entity.HasOne(x => x.Sucursal)
