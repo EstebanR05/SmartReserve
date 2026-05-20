@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Register";
+}
+
+<section class="page-header">
+    <h1>Create Account</h1>
+    <p>Register to start using SmartReserve.</p>
+</section>
+
+<section class="form-grid single auth-wrapper">
+    <article class="form-card auth-card">
+        <h2>New user registration</h2>
+        <form id="registerForm" class="stack-form">
+            <label>Email<input type="email" name="email" required /></label>
+            <label>Password<input type="password" name="password" required /></label>
+            <button type="submit">Register</button>
+        </form>
+
+        <p class="small-note">Already have an account? <a asp-controller="Account" asp-action="SignIn">Sign in here</a>.</p>
+    </article>
+</section>
+
+<section class="result-section">
+    <h2>Response</h2>
+    <pre id="authResult" class="result-box"></pre>
+</section>
+
+@section Scripts {
+    <script src="~/js/portal.js" asp-append-version="true"></script>
+    <script>
+        SmartReservePortal.initRegisterPage();
+    </script>
+}

@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Sign In";
+}
+
+<section class="page-header">
+    <h1>Sign In</h1>
+    <p>Login to access the reservation management portal.</p>
+</section>
+
+<section class="form-grid single auth-wrapper">
+    <article class="form-card auth-card">
+        <h2>Welcome back</h2>
+        <form id="loginForm" class="stack-form">
+            <label>Email<input type="email" name="email" required /></label>
+            <label>Password<input type="password" name="password" required /></label>
+            <button type="submit">Sign In</button>
+        </form>
+
+        <form id="forgotPasswordForm" class="stack-form compact-gap">
+            <label>Email for recovery<input type="email" name="email" required /></label>
+            <button type="submit" class="secondary">Send recovery email</button>
+        </form>
+
+        <p class="small-note">No account yet? <a asp-controller="Account" asp-action="Register">Create one</a>.</p>
+    </article>
+</section>
+
+<section class="result-section">
+    <h2>Response</h2>
+    <pre id="authResult" class="result-box"></pre>
+</section>
+
+@section Scripts {
+    <script src="~/js/portal.js" asp-append-version="true"></script>
+    <script>
+        SmartReservePortal.initSignInPage();
+    </script>
+}

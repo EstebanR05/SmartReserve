@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = "Reservations";
+}
+
+<section class="page-header">
+    <h1>Reservations</h1>
+    <p>Create, list, and cancel reservations for the logged-in user.</p>
+</section>
+
+<section class="form-grid">
+    <article class="form-card">
+        <h2>Create Reservation</h2>
+        <form id="createReservationForm" class="stack-form">
+            <label>Tourist Site Id<input type="number" name="touristSiteId" min="1" required /></label>
+            <label>Check-in Date<input type="date" name="checkInDate" required /></label>
+            <label>Check-out Date<input type="date" name="checkOutDate" required /></label>
+            <label>Adults<input type="number" name="adults" min="1" required /></label>
+            <label>Children<input type="number" name="children" min="0" value="0" required /></label>
+            <label>Contact Full Name<input type="text" name="contactFullName" required /></label>
+            <label>Contact Email<input type="email" name="contactEmail" required /></label>
+            <label>Contact Phone<input type="text" name="contactPhone" /></label>
+            <label>Accommodation Unit Id<input type="number" name="accommodationUnitId" min="1" required /></label>
+            <label>Unit Quantity<input type="number" name="quantity" min="1" value="1" required /></label>
+            <label>Unit People Count<input type="number" name="peopleCount" min="1" required /></label>
+            <label>Unit Price<input type="number" name="unitPrice" min="1" step="0.01" required /></label>
+            <button type="submit">Create Reservation</button>
+        </form>
+    </article>
+
+    <article class="form-card">
+        <h2>Manage Reservations</h2>
+        <div class="actions-row">
+            <button type="button" id="loadReservationsBtn">Load My Reservations</button>
+        </div>
+        <form id="cancelReservationForm" class="stack-form inline-form">
+            <label>Reservation Id<input type="number" name="reservationId" min="1" required /></label>
+            <button type="submit" class="danger">Cancel Reservation</button>
+        </form>
+    </article>
+</section>
+
+<section class="result-section">
+    <h2>Response</h2>
+    <pre id="reservationResult" class="result-box"></pre>
+</section>
+
+@section Scripts {
+    <script src="~/js/portal.js" asp-append-version="true"></script>
+    <script>
+        SmartReservePortal.initReservationsPage();
+    </script>
+}

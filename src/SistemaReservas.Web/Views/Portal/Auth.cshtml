@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Auth";
+}
+
+<section class="page-header">
+    <h1>Authentication Testing</h1>
+    <p>Use the forms below to test register, login, and forgot-password endpoints.</p>
+</section>
+
+<section class="form-grid">
+    <article class="form-card">
+        <h2>Register</h2>
+        <form id="registerForm" class="stack-form">
+            <label>Email<input type="email" name="email" required /></label>
+            <label>Password<input type="password" name="password" required /></label>
+            <button type="submit">Register</button>
+        </form>
+    </article>
+
+    <article class="form-card">
+        <h2>Login</h2>
+        <form id="loginForm" class="stack-form">
+            <label>Email<input type="email" name="email" required /></label>
+            <label>Password<input type="password" name="password" required /></label>
+            <button type="submit">Login</button>
+        </form>
+    </article>
+
+    <article class="form-card">
+        <h2>Forgot Password</h2>
+        <form id="forgotPasswordForm" class="stack-form">
+            <label>Email<input type="email" name="email" required /></label>
+            <button type="submit">Send Recovery Email</button>
+        </form>
+    </article>
+
+    <article class="form-card">
+        <h2>JWT Token</h2>
+        <p>Your token is stored in browser local storage after login.</p>
+        <div class="actions-row">
+            <button type="button" id="showTokenBtn">Show token</button>
+            <button type="button" id="clearTokenBtn" class="secondary">Clear token</button>
+        </div>
+        <pre id="tokenPreview" class="result-box"></pre>
+    </article>
+</section>
+
+<section class="result-section">
+    <h2>Response</h2>
+    <pre id="authResult" class="result-box"></pre>
+</section>
+
+@section Scripts {
+    <script src="~/js/portal.js" asp-append-version="true"></script>
+    <script>
+        SmartReservePortal.initAuthPage();
+    </script>
+}
