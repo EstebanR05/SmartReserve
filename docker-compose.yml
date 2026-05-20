@@ -14,9 +14,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: redis
+    container_name: smartreserve-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis-data:/data
     restart: unless-stopped
