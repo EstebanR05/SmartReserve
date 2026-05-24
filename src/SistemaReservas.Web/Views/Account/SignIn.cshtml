@@ -1,4 +1,5 @@
 @{
+    Layout = "_AuthLayout";
     ViewData["Title"] = "Sign In";
 }
 
@@ -17,8 +18,7 @@
             </form>
 
             <div id="authResult" class="auth-feedback"></div>
-            <p class="small-note auth-note">Forgot your password? <a asp-controller="Account" asp-action="Recovery">Recover account</a></p>
-            <p class="small-note auth-note">No account yet? <a asp-controller="Account" asp-action="Register">Sign up</a></p>
+            <p class="small-note auth-note">No account yet? <a asp-route="signup">Sign up</a></p>
         </article>
 
         <aside class="auth-pane auth-visual-pane">

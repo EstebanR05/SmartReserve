@@ -12,6 +12,7 @@ using SistemaReservas.Web.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -22,7 +23,6 @@ builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 builder.Services.AddScoped<IRateService, RateService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
-builder.Services.AddScoped<IAuthRecoveryService, AuthRecoveryService>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {

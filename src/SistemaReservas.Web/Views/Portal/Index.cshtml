@@ -1,12 +1,176 @@
 @{
+    Layout = "_DashboardLayout";
     ViewData["Title"] = "Dashboard";
 }
 
-<section class="dashboard-shell">
-    <div class="dashboard-card">
-        <h1>Dashboard</h1>
-        <p>This area is ready for your next modules.</p>
-        <button type="button" class="secondary" id="logoutBtn">Sign Out</button>
+<section class="sr-dashboard">
+    <aside class="sr-sidebar">
+        <div class="sr-brand">SmartReserve</div>
+        <nav class="sr-nav">
+            <button class="sr-nav-link is-active" data-panel="overview">Resumen</button>
+            <button class="sr-nav-link" data-panel="sites">Sitios</button>
+            <button class="sr-nav-link" data-panel="units">Unidades</button>
+            <button class="sr-nav-link" data-panel="availability">Disponibilidad</button>
+            <button class="sr-nav-link" data-panel="rates">Tarifas</button>
+            <button class="sr-nav-link" data-panel="reservations">Reservas</button>
+        </nav>
+        <button type="button" class="secondary" id="logoutBtn">Cerrar sesión</button>
+    </aside>
+
+    <div class="sr-main">
+        <header class="sr-topbar">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Gestiona tus módulos conectados al backend en tiempo real.</p>
+            </div>
+            <div class="sr-user-pill" id="userPill">Activo</div>
+        </header>
+
+        <section id="panel-overview" class="sr-panel is-active">
+            <div class="sr-stats-grid" id="overviewStats"></div>
+            <div class="sr-result-card">
+                <h2>Actividad del sistema</h2>
+                <pre id="overviewResult" class="result-box">Cargando resumen...</pre>
+            </div>
+        </section>
+
+        <section id="panel-sites" class="sr-panel">
+            <div class="sr-grid-2">
+                <article class="sr-card">
+                    <h2>Crear sitio turístico</h2>
+                    <form id="siteCreateForm" class="stack-form">
+                        <label>Nombre<input name="name" required /></label>
+                        <label>Ciudad<input name="city" required /></label>
+                        <label>Tipo<input name="siteType" required placeholder="Hotel, Finca, Cabaña..." /></label>
+                        <label>Capacidad máxima<input name="maxCapacity" type="number" min="1" required /></label>
+                        <label>Descripción<input name="description" /></label>
+                        <label class="sr-inline-check"><input name="isActive" type="checkbox" checked />Activo</label>
+                        <button type="submit">Guardar sitio</button>
+                    </form>
+                </article>
+                <article class="sr-card">
+                    <div class="sr-card-title-row">
+                        <h2>Sitios</h2>
+                        <button type="button" id="refreshSitesBtn" class="secondary">Actualizar</button>
+                    </div>
+                    <pre id="sitesResult" class="result-box"></pre>
+                </article>
+            </div>
+        </section>
+
+        <section id="panel-units" class="sr-panel">
+            <div class="sr-grid-2">
+                <article class="sr-card">
+                    <h2>Crear unidad</h2>
+                    <form id="unitCreateForm" class="stack-form">
+                        <label>ID sitio turístico<input name="touristSiteId" type="number" min="1" required /></label>
+                        <label>ID tipo de alojamiento<input name="accommodationTypeId" type="number" min="1" required /></label>
+                        <label>Código<input name="code" required /></label>
+                        <label>Nombre<input name="name" required /></label>
+                        <label>Descripción<input name="description" /></label>
+                        <label>Capacidad máxima<input name="maxCapacity" type="number" min="1" required /></label>
+                        <label>Habitaciones<input name="bedroomCount" type="number" min="0" required /></label>
+                        <label>Baños<input name="bathroomCount" type="number" min="0" required /></label>
+                        <label class="sr-inline-check"><input name="hasKitchen" type="checkbox" />Cocina</label>
+                        <label class="sr-inline-check"><input name="hasParking" type="checkbox" />Parqueadero</label>
+                        <label class="sr-inline-check"><input name="isActive" type="checkbox" checked />Activo</label>
+                        <button type="submit">Guardar unidad</button>
+                    </form>
+                </article>
+                <article class="sr-card">
+                    <div class="sr-card-title-row">
+                        <h2>Unidades</h2>
+                        <button type="button" id="refreshUnitsBtn" class="secondary">Actualizar</button>
+                    </div>
+                    <pre id="unitsResult" class="result-box"></pre>
+                </article>
+            </div>
+        </section>
+
+        <section id="panel-availability" class="sr-panel">
+            <div class="sr-grid-2">
+                <article class="sr-card">
+                    <h2>Buscar disponibilidad</h2>
+                    <form id="availabilitySearchForm" class="stack-form">
+                        <label>ID sitio turístico<input name="touristSiteId" type="number" min="1" required /></label>
+                        <label>Check-in<input name="checkInDate" type="date" required /></label>
+                        <label>Check-out<input name="checkOutDate" type="date" required /></label>
+                        <label>Personas<input name="people" type="number" min="1" /></label>
+                        <button type="submit">Consultar</button>
+                    </form>
+                </article>
+                <article class="sr-card">
+                    <h2>Resultado</h2>
+                    <pre id="availabilityResult" class="result-box"></pre>
+                </article>
+            </div>
+        </section>
+
+        <section id="panel-rates" class="sr-panel">
+            <div class="sr-grid-2">
+                <article class="sr-card">
+                    <h2>Buscar tarifas</h2>
+                    <form id="ratesSearchForm" class="stack-form">
+                        <label>ID sitio turístico<input name="touristSiteId" type="number" min="1" required /></label>
+                        <label>Fecha referencia<input name="referenceDate" type="date" required /></label>
+                        <label>Personas<input name="people" type="number" min="1" required /></label>
+                        <label>ID tipo de alojamiento<input name="accommodationTypeId" type="number" min="1" required /></label>
+                        <label>ID unidad (opcional)<input name="accommodationUnitId" type="number" min="1" /></label>
+                        <button type="submit">Consultar tarifas</button>
+                    </form>
+                </article>
+                <article class="sr-card">
+                    <h2>Calcular tarifa</h2>
+                    <form id="ratesCalculateForm" class="stack-form">
+                        <label>ID sitio turístico<input name="touristSiteId" type="number" min="1" required /></label>
+                        <label>Fecha referencia<input name="referenceDate" type="date" required /></label>
+                        <label>Personas<input name="people" type="number" min="1" required /></label>
+                        <label>ID tipo de alojamiento<input name="accommodationTypeId" type="number" min="1" required /></label>
+                        <label>Cantidad de habitaciones<input name="roomCount" type="number" min="1" required /></label>
+                        <label>Noches<input name="nights" type="number" min="1" required /></label>
+                        <button type="submit">Calcular</button>
+                    </form>
+                </article>
+            </div>
+            <article class="sr-card">
+                <h2>Resultados de tarifas</h2>
+                <pre id="ratesResult" class="result-box"></pre>
+            </article>
+        </section>
+
+        <section id="panel-reservations" class="sr-panel">
+            <div class="sr-grid-2">
+                <article class="sr-card">
+                    <h2>Crear reserva</h2>
+                    <form id="reservationCreateForm" class="stack-form">
+                        <label>ID sitio turístico<input name="touristSiteId" type="number" min="1" required /></label>
+                        <label>Check-in<input name="checkInDate" type="date" required /></label>
+                        <label>Check-out<input name="checkOutDate" type="date" required /></label>
+                        <label>Adultos<input name="adults" type="number" min="1" required /></label>
+                        <label>Niños<input name="children" type="number" min="0" required /></label>
+                        <label>Nombre contacto<input name="contactFullName" required /></label>
+                        <label>Email contacto<input name="contactEmail" type="email" required /></label>
+                        <label>Teléfono contacto<input name="contactPhone" /></label>
+                        <label>ID unidad<input name="accommodationUnitId" type="number" min="1" required /></label>
+                        <label>Cantidad<input name="quantity" type="number" min="1" value="1" required /></label>
+                        <label>Personas en unidad<input name="peopleCount" type="number" min="1" required /></label>
+                        <label>Precio unitario<input name="unitPrice" type="number" min="0" step="0.01" required /></label>
+                        <button type="submit">Crear reserva</button>
+                    </form>
+                </article>
+                <article class="sr-card">
+                    <div class="sr-card-title-row">
+                        <h2>Mis reservas</h2>
+                        <button type="button" id="refreshReservationsBtn" class="secondary">Actualizar</button>
+                    </div>
+                    <pre id="reservationsResult" class="result-box"></pre>
+                    <form id="reservationCancelForm" class="stack-form inline-form">
+                        <label>ID reserva a cancelar<input name="reservationId" type="number" min="1" required /></label>
+                        <button type="submit" class="danger">Cancelar reserva</button>
+                    </form>
+                </article>
+            </div>
+        </section>
     </div>
 </section>
 
@@ -16,7 +180,7 @@
         SmartReservePortal.initPortalHome();
         document.getElementById("logoutBtn")?.addEventListener("click", function () {
             SmartReservePortal.clearToken();
-            window.location.href = "/Account/SignIn";
+            window.location.href = "/login";
         });
     </script>
 }

@@ -4,11 +4,9 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using SistemaReservas.Web.Contracts.Auth;
 using SistemaReservas.Web.Data;
 using SistemaReservas.Web.Models.Auth;
 using SistemaReservas.Web.Models.Security;
-using SistemaReservas.Web.Services.Interfaces;
 
 namespace SistemaReservas.Web.Controllers;
 
@@ -18,18 +16,15 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
-    private readonly IAuthRecoveryService _authRecoveryService;
     private readonly ApplicationDbContext _dbContext;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         IConfiguration configuration,
-        IAuthRecoveryService authRecoveryService,
         ApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _configuration = configuration;
-        _authRecoveryService = authRecoveryService;
         _dbContext = dbContext;
     }
 
@@ -92,13 +87,6 @@ public class AuthController : ControllerBase
             Token = tokenData.token,
             ExpiresAtUtc = tokenData.expiresAtUtc
         });
-    }
-
-    [HttpPost("forgot-password")]
-    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
-    {
-        await _authRecoveryService.RequestPasswordResetAsync(request.Email, cancellationToken);
-        return Ok(new { Message = "If the email exists, a recovery message was sent." });
     }
 
     private (string token, DateTime expiresAtUtc) BuildToken(ApplicationUser user)

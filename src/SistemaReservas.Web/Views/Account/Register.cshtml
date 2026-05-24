@@ -1,4 +1,5 @@
 @{
+    Layout = "_AuthLayout";
     ViewData["Title"] = "Sign Up";
 }
 
@@ -10,23 +11,22 @@
                 <p>Register your company and administrator user.</p>
             </div>
 
-            <form id="registerForm" class="stack-form auth-form">
-                <label>Business name<input type="text" name="businessName" required /></label>
-                <label>Business address<input type="text" name="businessAddress" /></label>
+            <form id="registerForm" class="stack-form auth-form auth-register-grid">
+                <label class="field-span-2">Business name<input type="text" name="businessName" required /></label>
                 <label>Business phone<input type="text" name="businessPhone" /></label>
+                <label class="field-span-2">Business address<input type="text" name="businessAddress" /></label>
 
                 <label>First name<input type="text" name="name" required /></label>
                 <label>Last name<input type="text" name="lastName" /></label>
                 <label>Email<input type="email" name="email" placeholder="you@example.com" required /></label>
                 <label>Phone<input type="text" name="phone" /></label>
-                <label>Address<input type="text" name="address" /></label>
+                <label class="field-span-2">Address<input type="text" name="address" /></label>
                 <label>Password<input type="password" name="password" placeholder="Create a secure password" required /></label>
-
                 <button type="submit">Create account</button>
             </form>
 
             <div id="authResult" class="auth-feedback"></div>
-            <p class="small-note auth-note">Already have an account? <a asp-controller="Account" asp-action="SignIn">Sign in</a></p>
+            <p class="small-note auth-note">Already have an account? <a asp-route="login">Sign in</a></p>
         </article>
 
         <aside class="auth-pane auth-visual-pane">
