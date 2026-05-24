@@ -363,6 +363,18 @@ button.danger:hover {
     color: var(--muted);
 }
 
+.auth-side-image {
+    width: 100%;
+    max-width: 340px;
+    height: auto;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid #d3dcf7;
+    box-shadow: 0 12px 24px rgba(34, 58, 140, 0.16);
+    display: block;
+    margin: 0 auto;
+}
+
 .auth-illustration {
     position: relative;
     background: linear-gradient(145deg, #e9eefc, #dbe4ff);
