@@ -282,7 +282,10 @@ button.danger:hover {
     min-height: 70vh;
     display: grid;
     align-items: center;
-    background: linear-gradient(180deg, #2d4fe0 0 38%, #0f9a93 100%);
+    background:
+        radial-gradient(circle at 10% 8%, #2349d8 0 170px, transparent 171px),
+        radial-gradient(circle at 90% 96%, #0f9a93 0 220px, transparent 221px),
+        #d7dce8;
     border-radius: 18px;
     padding: 1.25rem;
 }
@@ -301,7 +304,7 @@ button.danger:hover {
 .auth-main .auth-shell {
     min-height: 100vh;
     border-radius: 0;
-    padding: 1.25rem;
+    padding: 1.5rem;
 }
 
 .auth-card-split {
