@@ -223,7 +223,10 @@
             return;
         }
 
-        tbody.innerHTML = (rows || []).map((r) => `
+        tbody.innerHTML = (rows || []).map((r) => {
+            const status = (r.status || "").toLowerCase();
+            const isCancelled = status === "cancelled" || status === "cancelada";
+            return `
             <tr>
                 <td>${r.touristSiteName || r.touristSite?.name || r.touristSiteId}</td>
                 <td>${(r.createdAtUtc || "").toString().slice(0, 10)}</td>
@@ -232,17 +235,27 @@
                 <td>${r.totalPeople ?? ((r.adults || 0) + (r.children || 0))}</td>
                 <td>${(r.reservationUnits || []).length}</td>
                 <td>${money(r.totalAmount || 0)}</td>
-                <td><button class="legacy-select-btn" data-cancel-id="${r.id}">Cancelar</button></td>
+                <td>${isCancelled
+                    ? '<span class="legacy-badge-cancelled">Cancelada</span>'
+                    : `<button type="button" class="legacy-select-btn" data-cancel-id="${r.id}">Cancelar</button>`}
+                </td>
             </tr>
-        `).join("");
+        `;
+        }).join("");
 
         tbody.querySelectorAll("button[data-cancel-id]").forEach((btn) => {
             btn.addEventListener("click", async () => {
+                const reservationId = btn.getAttribute("data-cancel-id");
+                const confirmed = window.confirm("¿Seguro que deseas cancelar esta reserva?");
+                if (!confirmed) return;
+
+                btn.disabled = true;
                 try {
-                    await apiCall(`/api/reservations/${btn.getAttribute("data-cancel-id")}`, "DELETE");
+                    await apiCall(`/api/reservations/${reservationId}`, "DELETE");
                     await loadMyReservations();
                 } catch (e) {
-                    alert(e.message);
+                    btn.disabled = false;
+                    alert(e.message || "No se pudo cancelar la reserva.");
                 }
             });
         });
