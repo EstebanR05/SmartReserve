@@ -4,9 +4,11 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using SistemaReservas.Web.Contracts.Auth;
 using SistemaReservas.Web.Data;
 using SistemaReservas.Web.Models.Auth;
 using SistemaReservas.Web.Models.Security;
+using SistemaReservas.Web.Services.Interfaces;
 
 namespace SistemaReservas.Web.Controllers;
 
@@ -17,15 +19,18 @@ public class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IAuthRecoveryService _authRecoveryService;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         IConfiguration configuration,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        IAuthRecoveryService authRecoveryService)
     {
         _userManager = userManager;
         _configuration = configuration;
         _dbContext = dbContext;
+        _authRecoveryService = authRecoveryService;
     }
 
     [HttpPost("register")]
@@ -80,6 +85,14 @@ public class AuthController : ControllerBase
         }
 
         var tokenData = BuildToken(user);
+        Response.Cookies.Append("smartreserve.jwt", tokenData.token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = Request.IsHttps,
+            SameSite = SameSiteMode.Lax,
+            Expires = tokenData.expiresAtUtc
+        });
+
         return Ok(new AuthResponse
         {
             Success = true,
@@ -87,6 +100,13 @@ public class AuthController : ControllerBase
             Token = tokenData.token,
             ExpiresAtUtc = tokenData.expiresAtUtc
         });
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        await _authRecoveryService.RequestPasswordResetAsync(request.Email, cancellationToken);
+        return Ok(new { Message = "If the email exists, password recovery instructions were sent." });
     }
 
     private (string token, DateTime expiresAtUtc) BuildToken(ApplicationUser user)

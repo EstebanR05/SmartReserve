@@ -46,13 +46,29 @@
                 clearToken();
                 window.location.href = "/login";
             }
-            throw new Error((data && (data.message || data.Message)) || `Request failed (${response.status})`);
+            throw new Error(extractErrorMessage(data, response.status));
         }
         return data;
     }
 
     function safeParseJson(text) {
         try { return JSON.parse(text); } catch { return { message: text }; }
+    }
+
+    function extractErrorMessage(data, status) {
+        if (!data) return `Request failed (${status})`;
+        if (typeof data === "string") return data;
+        if (data.message || data.Message) return data.message || data.Message;
+
+        if (data.errors && typeof data.errors === "object") {
+            const firstError = Object.values(data.errors)
+                .flat()
+                .find((x) => typeof x === "string" && x.trim().length > 0);
+            if (firstError) return firstError;
+        }
+
+        if (data.title) return data.title;
+        return `Request failed (${status})`;
     }
 
     function bindSubmit(formId, handler) {
@@ -291,17 +307,24 @@
         const availability = await apiCall("/api/availability/search", "POST", payload);
         state.lastAvailability = availability || [];
 
-        const rates = await apiCall("/api/rates/search", "POST", {
-            touristSiteId: state.selectedSite.id,
-            referenceDate: fd.get("checkInDate"),
-            people: number(fd.get("people"), 1),
-            accommodationTypeId: 1
-        });
-
         state.ratesByUnit.clear();
-        (rates || []).forEach((r) => {
-            if (r.accommodationUnitId) state.ratesByUnit.set(r.accommodationUnitId, r);
-        });
+        for (const unit of state.lastAvailability) {
+            const unitId = unit.accommodationUnitId || unit.id;
+            const unitTypeId = unit.accommodationTypeId || unit.typeId || 1;
+            try {
+                const rates = await apiCall("/api/rates/search", "POST", {
+                    touristSiteId: state.selectedSite.id,
+                    referenceDate: fd.get("checkInDate"),
+                    people: number(fd.get("people"), 1),
+                    accommodationTypeId: unitTypeId,
+                    accommodationUnitId: unitId
+                });
+                const bestRate = Array.isArray(rates) && rates.length > 0 ? rates[0] : null;
+                if (bestRate) state.ratesByUnit.set(unitId, bestRate);
+            } catch {
+                // Keep unit without rate; it will be shown as non-reservable.
+            }
+        }
 
         renderUnitsTable(number(fd.get("nights"), 1), number(fd.get("people"), 1));
     }
@@ -317,14 +340,15 @@
             const capacity = u.maxCapacity || u.capacity || "-";
             const base = rate?.basePrice || rate?.price || 0;
             const available = u.available !== false;
+            const hasValidRate = base > 0;
 
             return `
                 <tr>
                     <td><button class="legacy-select-btn" data-detail-id="${unitId}">Detalle</button> ${name}</td>
                     <td>${capacity}</td>
-                    <td>${money(base)}</td>
+                    <td>${hasValidRate ? money(base) : "<span style=\"color:#b42318\">Sin tarifa</span>"}</td>
                     <td>${available ? "✔" : "✖"}</td>
-                    <td><input type="checkbox" data-reserve-id="${unitId}" ${available ? "" : "disabled"}/></td>
+                    <td><input type="checkbox" data-reserve-id="${unitId}" ${(available && hasValidRate) ? "" : "disabled"}/></td>
                 </tr>
             `;
         }).join("");
@@ -422,6 +446,12 @@
                     peopleCount: people,
                     unitPrice: state.ratesByUnit.get(id)?.basePrice || 0
                 }));
+
+                const invalidPriceUnit = units.find((u) => u.unitPrice <= 0);
+                if (invalidPriceUnit) {
+                    alert("Hay alojamientos sin tarifa configurada. Ajusta la selección o configura tarifas antes de reservar.");
+                    return;
+                }
 
                 await apiCall("/api/reservations", "POST", {
                     touristSiteId: state.selectedSite.id,

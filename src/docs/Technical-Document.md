@@ -17,7 +17,8 @@ The backend follows a layered architecture:
 - `Models/Domain`: core booking entities.
 - `Models/Security`: multitenancy + RBAC entities.
 - `Data/ApplicationDbContext`: EF Core mappings and constraints.
-- `Migrations`: schema and stored procedure versioning.
+- `Migrations`: schema versioning.
+- `Data/DbStartupInitializer`: startup provisioning for required stored procedures.
 
 ## 3. Relational Database Model
 
@@ -101,7 +102,6 @@ Reference scripts:
 - SQL Server 2022
 - ASP.NET Core Identity
 - JWT Bearer Authentication
-- Redis
 - Docker Compose
 - Swashbuckle (Swagger)
 
@@ -152,3 +152,5 @@ dotnet run
 ### Catalog CRUD
 - `GET/POST/PUT/DELETE /api/tourist-sites`
 - `GET/POST/PUT/DELETE /api/accommodation-units`
+- `GET/POST/PUT/DELETE /api/seasons`
+- `GET/POST/PUT/DELETE /api/rate-plans`

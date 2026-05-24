@@ -20,7 +20,7 @@ The solution is designed to support:
 - Season and rate administration.
 - User registration and login.
 - Booking management and availability validation.
-- Foundation for password recovery via SMTP.
+- Password recovery via SMTP (backend endpoint).
 - Foundation for administrative and operational CRUD workflows.
 
 ## Architecture and Design
@@ -30,7 +30,7 @@ The project follows a layered architecture:
 - Presentation: ASP.NET Core MVC + Razor.
 - Application/Services: use case orchestration.
 - Domain: entities and business rules.
-- Infrastructure: data access, SQL Server, Redis, Identity, JWT.
+- Infrastructure: data access, SQL Server, Identity, JWT, SMTP.
 
 Applied principles:
 
@@ -54,7 +54,7 @@ Applied principles:
 `docker-compose.yml` defines the base local services:
 
 - SQL Server: `localhost:1433`
-- Redis: `localhost:6380`
+- Redis (optional, currently not required by the web app): `localhost:6380`
 
 Start infrastructure:
 
@@ -134,6 +134,7 @@ Base endpoints:
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
+- `POST /api/auth/forgot-password`
 
 ## Migrations and Database
 
@@ -256,7 +257,11 @@ Back-end APIs in active use:
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
+- `POST /api/auth/forgot-password`
 - `GET /api/tourist-sites`
+- `GET/POST/PUT/DELETE /api/accommodation-units`
+- `GET/POST/PUT/DELETE /api/seasons`
+- `GET/POST/PUT/DELETE /api/rate-plans`
 - `POST /api/availability/search`
 - `POST /api/rates/search`
 - `POST /api/reservations`
@@ -292,7 +297,7 @@ dotnet user-secrets list
 
 ## Technical Quality Added
 
-At this stage, the project prioritizes a strong engineering foundation:
+Current technical highlights:
 
 - Coherent relational model for bookings and rates.
 - Modern JWT-based authentication.
@@ -304,10 +309,6 @@ At this stage, the project prioritizes a strong engineering foundation:
 
 Planned next deliveries:
 
-- Catalog CRUDs (sites, units, seasons, rates).
-- Stored procedures for availability and rate calculation.
-- End-to-end booking workflow and confirmation.
-- SMTP password recovery.
 - Permission/module-based authorization policies.
 - Testing and final technical architecture documentation.
 
@@ -315,7 +316,7 @@ Planned next deliveries:
 
 The project is under active development and currently includes:
 
-- Working local infrastructure (SQL Server + Redis).
+- Working local infrastructure (SQL Server + optional Redis).
 - Structured and migrated database.
 - Functional authentication.
 - Ready-to-extend authorization and multitenancy foundation.
