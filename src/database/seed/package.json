@@ -4,14 +4,16 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "seed": "tsx main.ts"
+    "prisma:generate": "npx prisma generate --schema ./prisma/schema.prisma",
+    "seed": "npm run prisma:generate && tsx main.ts"
   },
   "dependencies": {
+    "@prisma/client": "^6.8.2",
     "dotenv": "^17.4.2",
-    "mssql": "^11.0.1"
+    "prisma": "^6.8.2"
   },
   "devDependencies": {
-    "@types/mssql": "^12.3.0",
+    "@types/node": "^25.9.1",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }

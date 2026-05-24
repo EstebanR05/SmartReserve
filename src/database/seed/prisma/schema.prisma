@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model EFMigrationsHistory {
+  migrationId    String @id @map("MigrationId") @db.NVarChar(150)
+  productVersion String @map("ProductVersion") @db.NVarChar(32)
+
+  @@map("__EFMigrationsHistory")
+}
