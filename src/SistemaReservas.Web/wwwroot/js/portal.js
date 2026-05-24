@@ -41,6 +41,10 @@
         const text = await response.text();
         const data = text ? safeParseJson(text) : null;
         if (!response.ok) {
+            if (response.status === 401) {
+                clearToken();
+                window.location.href = "/login";
+            }
             throw new Error((data && (data.message || data.Message)) || `Request failed (${response.status})`);
         }
         return data;
@@ -132,9 +136,33 @@
     }
 
     async function loadSites() {
-        const rows = await apiCall("/api/tourist-sites", "GET");
         const tbody = document.getElementById("sitesTableBody");
         if (!tbody) return;
+
+        let rows = [];
+        try {
+            rows = await apiCall("/api/tourist-sites", "GET");
+        } catch (error) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6">
+                        No se pudieron cargar las sedes: ${error.message}
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6">
+                        No hay sedes disponibles en la base de datos.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
 
         tbody.innerHTML = (rows || []).map((site) => `
             <tr>
@@ -161,9 +189,19 @@
     }
 
     async function loadMyReservations() {
-        const rows = await apiCall("/api/reservations/mine", "GET");
         const tbody = document.getElementById("myReservationsBody");
         if (!tbody) return;
+        let rows = [];
+        try {
+            rows = await apiCall("/api/reservations/mine", "GET");
+        } catch (error) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8">No se pudieron cargar tus reservas: ${error.message}</td>
+                </tr>
+            `;
+            return;
+        }
 
         tbody.innerHTML = (rows || []).map((r) => `
             <tr>
