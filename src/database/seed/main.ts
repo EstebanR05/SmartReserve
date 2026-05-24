@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import "dotenv/config";
 
-const SUPERADMIN_EMAIL = process.env.SUPERADMIN_EMAIL;
-const SUPERADMIN_PASSWORD_HASH = process.env.SUPERADMIN_PASSWORD_HASH;
+const SUPERADMIN_EMAIL = process.env.SUPERADMIN_EMAIL || "";
+const SUPERADMIN_PASSWORD_HASH = process.env.SUPERADMIN_PASSWORD_HASH || "";
 
 function toPrismaSqlServerUrl(raw: string): string {
   if (raw.startsWith("sqlserver://")) {
