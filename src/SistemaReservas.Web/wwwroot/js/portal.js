@@ -2,6 +2,7 @@
     const TOKEN_KEY = "smartreserve.jwt";
     const state = {
         selectedSite: null,
+        sites: [],
         selectedUnits: [],
         lastAvailability: [],
         ratesByUnit: new Map()
@@ -66,6 +67,12 @@
     function number(value, fallback) {
         const parsed = Number(value);
         return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function parseIsoDate(value) {
+        if (!value || typeof value !== "string") return null;
+        const date = new Date(`${value}T00:00:00`);
+        return Number.isNaN(date.getTime()) ? null : date;
     }
 
     function money(value) {
@@ -137,6 +144,7 @@
 
     async function loadSites() {
         const tbody = document.getElementById("sitesTableBody");
+        const siteSelect = document.getElementById("siteSelect");
         if (!tbody) return;
 
         let rows = [];
@@ -164,6 +172,15 @@
             return;
         }
 
+        state.sites = rows;
+
+        if (siteSelect) {
+            siteSelect.innerHTML = [
+                `<option value="">Seleccione una sede...</option>`,
+                ...rows.map((site) => `<option value="${site.id}">${site.name} (${site.city})</option>`)
+            ].join("");
+        }
+
         tbody.innerHTML = (rows || []).map((site) => `
             <tr>
                 <td><div style="width:120px;height:70px;background:#cfcfcf"></div></td>
@@ -179,6 +196,9 @@
             btn.addEventListener("click", () => {
                 const id = Number(btn.getAttribute("data-site-id"));
                 state.selectedSite = rows.find((x) => x.id === id) || null;
+                if (siteSelect && state.selectedSite) {
+                    siteSelect.value = String(state.selectedSite.id);
+                }
                 state.selectedUnits = [];
                 state.ratesByUnit.clear();
                 document.getElementById("selectedSiteTitle").textContent = state.selectedSite?.name || "Seleccione una sede";
@@ -234,10 +254,24 @@
             return;
         }
 
+        const checkInDate = String(fd.get("checkInDate") || "");
+        const checkOutDate = String(fd.get("checkOutDate") || "");
+        const checkIn = parseIsoDate(checkInDate);
+        const checkOut = parseIsoDate(checkOutDate);
+        if (!checkIn || !checkOut) {
+            alert("Debes ingresar fechas válidas.");
+            return;
+        }
+
+        if (checkOut <= checkIn) {
+            alert("La fecha de salida debe ser mayor que la fecha de llegada.");
+            return;
+        }
+
         const payload = {
             touristSiteId: state.selectedSite.id,
-            checkInDate: fd.get("checkInDate"),
-            checkOutDate: fd.get("checkOutDate"),
+            checkInDate,
+            checkOutDate,
             people: number(fd.get("people"), 1)
         };
 
@@ -419,6 +453,20 @@
             } catch (e) {
                 alert(e.message);
             }
+        });
+
+        const siteSelect = document.getElementById("siteSelect");
+        siteSelect?.addEventListener("change", () => {
+            const id = Number(siteSelect.value);
+            state.selectedSite = state.sites.find((x) => x.id === id) || null;
+            state.selectedUnits = [];
+            state.ratesByUnit.clear();
+            state.lastAvailability = [];
+            document.getElementById("selectedSiteTitle").textContent = state.selectedSite?.name || "Seleccione una sede";
+            document.getElementById("selectedSiteDescription").textContent = state.selectedSite?.description || "";
+            const unitsBody = document.getElementById("unitsTableBody");
+            if (unitsBody) unitsBody.innerHTML = "";
+            updateSummary(0, 0);
         });
 
         document.querySelectorAll("[data-close]").forEach((btn) => {

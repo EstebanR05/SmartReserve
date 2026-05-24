@@ -60,6 +60,8 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
+await DbStartupInitializer.InitializeAsync(app.Services, app.Environment);
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

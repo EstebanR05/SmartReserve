@@ -20,7 +20,14 @@ public class AvailabilityController : ControllerBase
     [HttpPost("search")]
     public async Task<IActionResult> Search([FromBody] AvailabilitySearchRequest request, CancellationToken cancellationToken)
     {
-        var results = await _availabilityService.SearchAsync(request, cancellationToken);
-        return Ok(results);
+        try
+        {
+            var results = await _availabilityService.SearchAsync(request, cancellationToken);
+            return Ok(results);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { Message = ex.Message });
+        }
     }
 }
