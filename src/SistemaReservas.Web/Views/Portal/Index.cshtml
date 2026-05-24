@@ -1,176 +1,152 @@
 @{
     Layout = "_DashboardLayout";
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Sistema de Reservas";
 }
 
-<section class="sr-dashboard">
-    <aside class="sr-sidebar">
-        <div class="sr-brand">SmartReserve</div>
-        <nav class="sr-nav">
-            <button class="sr-nav-link is-active" data-panel="overview">Resumen</button>
-            <button class="sr-nav-link" data-panel="sites">Sitios</button>
-            <button class="sr-nav-link" data-panel="units">Unidades</button>
-            <button class="sr-nav-link" data-panel="availability">Disponibilidad</button>
-            <button class="sr-nav-link" data-panel="rates">Tarifas</button>
-            <button class="sr-nav-link" data-panel="reservations">Reservas</button>
-        </nav>
-        <button type="button" class="secondary" id="logoutBtn">Cerrar sesión</button>
-    </aside>
-
-    <div class="sr-main">
-        <header class="sr-topbar">
-            <div>
-                <h1>Dashboard</h1>
-                <p>Gestiona tus módulos conectados al backend en tiempo real.</p>
+<section class="legacy-shell">
+    <div class="sr-app-shell">
+        <aside class="sr-plus-sidebar">
+            <div class="sr-plus-profile">
+                <div class="sr-plus-avatar">SR</div>
+                <div>
+                    <strong>SmartReserve</strong>
+                    <small>Administrador</small>
+                </div>
             </div>
-            <div class="sr-user-pill" id="userPill">Activo</div>
-        </header>
 
-        <section id="panel-overview" class="sr-panel is-active">
-            <div class="sr-stats-grid" id="overviewStats"></div>
-            <div class="sr-result-card">
-                <h2>Actividad del sistema</h2>
-                <pre id="overviewResult" class="result-box">Cargando resumen...</pre>
+            <nav class="sr-plus-nav">
+                <button class="legacy-nav-link is-active sr-plus-link" data-view="sites">Sedes Recreativas</button>
+                <button class="legacy-nav-link sr-plus-link" data-view="my-reservations">Mis Reservas</button>
+            </nav>
+
+            <button class="sr-plus-logout" id="logoutBtn">Cerrar Sesión</button>
+        </aside>
+
+        <section class="sr-plus-main">
+            <header class="sr-plus-topbar">
+                <h1>Sistema de Reservas</h1>
+                <span class="legacy-user" id="legacyUser">Bienvenido</span>
+            </header>
+
+            <main class="legacy-content">
+        <section id="view-sites" class="legacy-view is-active">
+            <h2>Sedes Recreativas y Apartamentos</h2>
+
+            <div class="legacy-tabs">
+                <button class="legacy-tab is-active" data-panel="list">Sedes Recreativas y Apartamentos</button>
+                <button class="legacy-tab" data-panel="dates">Seleccione sus Fechas</button>
             </div>
+
+            <section id="panel-list" class="legacy-panel is-active">
+                <table class="legacy-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Tipo</th>
+                            <th>Ubicación</th>
+                            <th>Seleccionar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sitesTableBody"></tbody>
+                </table>
+            </section>
+
+            <section id="panel-dates" class="legacy-panel">
+                <div class="legacy-dates-grid">
+                    <article class="legacy-card">
+                        <h3>Mis Fechas</h3>
+                        <form id="availabilityForm" class="legacy-form">
+                            <label>Fecha de Llegada<input name="checkInDate" type="date" required /></label>
+                            <label>Fecha de Salida<input name="checkOutDate" type="date" required /></label>
+                            <label>Noches<input name="nights" type="number" min="1" required /></label>
+                            <label>Personas<input name="people" type="number" min="1" required /></label>
+                            <label>Nombre de Contacto<input name="contactFullName" required /></label>
+                            <label>Email de Contacto<input name="contactEmail" type="email" required /></label>
+                            <label>Teléfono de Contacto<input name="contactPhone" /></label>
+                            <button type="submit" class="legacy-btn">Consultar Disponibilidad</button>
+                        </form>
+
+                        <div class="legacy-total">
+                            <h3>Total Reserva</h3>
+                            <div>Habitaciones: <strong id="summaryRooms">0</strong></div>
+                            <div>Días Ordinarios: <strong id="summaryOrdinary">0</strong></div>
+                            <div>Días Especiales: <strong id="summarySpecial">0</strong></div>
+                            <div>Valor Total: <strong id="summaryTotal">$0</strong></div>
+                        </div>
+                    </article>
+
+                    <article class="legacy-card">
+                        <h3 id="selectedSiteTitle">Seleccione una sede</h3>
+                        <p id="selectedSiteDescription" class="legacy-scroll"></p>
+
+                        <table class="legacy-table legacy-table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Habitación / Alojamiento</th>
+                                    <th>Capacidad</th>
+                                    <th>Tarifa</th>
+                                    <th>Disponible</th>
+                                    <th>Reservar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unitsTableBody"></tbody>
+                        </table>
+
+                        <button id="openConfirmBtn" type="button" class="legacy-btn" disabled>Reservar</button>
+                    </article>
+                </div>
+            </section>
         </section>
 
-        <section id="panel-sites" class="sr-panel">
-            <div class="sr-grid-2">
-                <article class="sr-card">
-                    <h2>Crear sitio turístico</h2>
-                    <form id="siteCreateForm" class="stack-form">
-                        <label>Nombre<input name="name" required /></label>
-                        <label>Ciudad<input name="city" required /></label>
-                        <label>Tipo<input name="siteType" required placeholder="Hotel, Finca, Cabaña..." /></label>
-                        <label>Capacidad máxima<input name="maxCapacity" type="number" min="1" required /></label>
-                        <label>Descripción<input name="description" /></label>
-                        <label class="sr-inline-check"><input name="isActive" type="checkbox" checked />Activo</label>
-                        <button type="submit">Guardar sitio</button>
-                    </form>
-                </article>
-                <article class="sr-card">
-                    <div class="sr-card-title-row">
-                        <h2>Sitios</h2>
-                        <button type="button" id="refreshSitesBtn" class="secondary">Actualizar</button>
-                    </div>
-                    <pre id="sitesResult" class="result-box"></pre>
-                </article>
-            </div>
+        <section id="view-my-reservations" class="legacy-view">
+            <h2>Mis Reservas</h2>
+            <table class="legacy-table">
+                <thead>
+                    <tr>
+                        <th>Lugar</th>
+                        <th>Fecha Reserva</th>
+                        <th>Fecha Llegada</th>
+                        <th>Fecha Salida</th>
+                        <th>No. Personas</th>
+                        <th>No. Habitaciones</th>
+                        <th>Valor Total</th>
+                        <th>Cancelar</th>
+                    </tr>
+                </thead>
+                <tbody id="myReservationsBody"></tbody>
+            </table>
         </section>
+            </main>
+            <footer class="sr-plus-footer">
+                SmartReserve - Plataforma de Reservas
+            </footer>
+        </section>
+    </div>
 
-        <section id="panel-units" class="sr-panel">
-            <div class="sr-grid-2">
-                <article class="sr-card">
-                    <h2>Crear unidad</h2>
-                    <form id="unitCreateForm" class="stack-form">
-                        <label>ID sitio turístico<input name="touristSiteId" type="number" min="1" required /></label>
-                        <label>ID tipo de alojamiento<input name="accommodationTypeId" type="number" min="1" required /></label>
-                        <label>Código<input name="code" required /></label>
-                        <label>Nombre<input name="name" required /></label>
-                        <label>Descripción<input name="description" /></label>
-                        <label>Capacidad máxima<input name="maxCapacity" type="number" min="1" required /></label>
-                        <label>Habitaciones<input name="bedroomCount" type="number" min="0" required /></label>
-                        <label>Baños<input name="bathroomCount" type="number" min="0" required /></label>
-                        <label class="sr-inline-check"><input name="hasKitchen" type="checkbox" />Cocina</label>
-                        <label class="sr-inline-check"><input name="hasParking" type="checkbox" />Parqueadero</label>
-                        <label class="sr-inline-check"><input name="isActive" type="checkbox" checked />Activo</label>
-                        <button type="submit">Guardar unidad</button>
-                    </form>
-                </article>
-                <article class="sr-card">
-                    <div class="sr-card-title-row">
-                        <h2>Unidades</h2>
-                        <button type="button" id="refreshUnitsBtn" class="secondary">Actualizar</button>
-                    </div>
-                    <pre id="unitsResult" class="result-box"></pre>
-                </article>
-            </div>
-        </section>
+    <div id="unitModal" class="legacy-modal hidden">
+        <div class="legacy-modal-card">
+            <header>
+                <h4>Detalle Habitación / Alojamiento</h4>
+                <button type="button" data-close="unitModal">X</button>
+            </header>
+            <div id="unitModalBody"></div>
+        </div>
+    </div>
 
-        <section id="panel-availability" class="sr-panel">
-            <div class="sr-grid-2">
-                <article class="sr-card">
-                    <h2>Buscar disponibilidad</h2>
-                    <form id="availabilitySearchForm" class="stack-form">
-                        <label>ID sitio turístico<input name="touristSiteId" type="number" min="1" required /></label>
-                        <label>Check-in<input name="checkInDate" type="date" required /></label>
-                        <label>Check-out<input name="checkOutDate" type="date" required /></label>
-                        <label>Personas<input name="people" type="number" min="1" /></label>
-                        <button type="submit">Consultar</button>
-                    </form>
-                </article>
-                <article class="sr-card">
-                    <h2>Resultado</h2>
-                    <pre id="availabilityResult" class="result-box"></pre>
-                </article>
+    <div id="confirmModal" class="legacy-modal hidden">
+        <div class="legacy-modal-card">
+            <header>
+                <h4>Confirmación Reserva</h4>
+                <button type="button" data-close="confirmModal">X</button>
+            </header>
+            <div id="confirmBody"></div>
+            <div class="legacy-modal-actions">
+                <button id="confirmReservationBtn" type="button" class="legacy-btn">Confirmar</button>
+                <button type="button" class="legacy-btn secondary" data-close="confirmModal">Cancelar</button>
             </div>
-        </section>
-
-        <section id="panel-rates" class="sr-panel">
-            <div class="sr-grid-2">
-                <article class="sr-card">
-                    <h2>Buscar tarifas</h2>
-                    <form id="ratesSearchForm" class="stack-form">
-                        <label>ID sitio turístico<input name="touristSiteId" type="number" min="1" required /></label>
-                        <label>Fecha referencia<input name="referenceDate" type="date" required /></label>
-                        <label>Personas<input name="people" type="number" min="1" required /></label>
-                        <label>ID tipo de alojamiento<input name="accommodationTypeId" type="number" min="1" required /></label>
-                        <label>ID unidad (opcional)<input name="accommodationUnitId" type="number" min="1" /></label>
-                        <button type="submit">Consultar tarifas</button>
-                    </form>
-                </article>
-                <article class="sr-card">
-                    <h2>Calcular tarifa</h2>
-                    <form id="ratesCalculateForm" class="stack-form">
-                        <label>ID sitio turístico<input name="touristSiteId" type="number" min="1" required /></label>
-                        <label>Fecha referencia<input name="referenceDate" type="date" required /></label>
-                        <label>Personas<input name="people" type="number" min="1" required /></label>
-                        <label>ID tipo de alojamiento<input name="accommodationTypeId" type="number" min="1" required /></label>
-                        <label>Cantidad de habitaciones<input name="roomCount" type="number" min="1" required /></label>
-                        <label>Noches<input name="nights" type="number" min="1" required /></label>
-                        <button type="submit">Calcular</button>
-                    </form>
-                </article>
-            </div>
-            <article class="sr-card">
-                <h2>Resultados de tarifas</h2>
-                <pre id="ratesResult" class="result-box"></pre>
-            </article>
-        </section>
-
-        <section id="panel-reservations" class="sr-panel">
-            <div class="sr-grid-2">
-                <article class="sr-card">
-                    <h2>Crear reserva</h2>
-                    <form id="reservationCreateForm" class="stack-form">
-                        <label>ID sitio turístico<input name="touristSiteId" type="number" min="1" required /></label>
-                        <label>Check-in<input name="checkInDate" type="date" required /></label>
-                        <label>Check-out<input name="checkOutDate" type="date" required /></label>
-                        <label>Adultos<input name="adults" type="number" min="1" required /></label>
-                        <label>Niños<input name="children" type="number" min="0" required /></label>
-                        <label>Nombre contacto<input name="contactFullName" required /></label>
-                        <label>Email contacto<input name="contactEmail" type="email" required /></label>
-                        <label>Teléfono contacto<input name="contactPhone" /></label>
-                        <label>ID unidad<input name="accommodationUnitId" type="number" min="1" required /></label>
-                        <label>Cantidad<input name="quantity" type="number" min="1" value="1" required /></label>
-                        <label>Personas en unidad<input name="peopleCount" type="number" min="1" required /></label>
-                        <label>Precio unitario<input name="unitPrice" type="number" min="0" step="0.01" required /></label>
-                        <button type="submit">Crear reserva</button>
-                    </form>
-                </article>
-                <article class="sr-card">
-                    <div class="sr-card-title-row">
-                        <h2>Mis reservas</h2>
-                        <button type="button" id="refreshReservationsBtn" class="secondary">Actualizar</button>
-                    </div>
-                    <pre id="reservationsResult" class="result-box"></pre>
-                    <form id="reservationCancelForm" class="stack-form inline-form">
-                        <label>ID reserva a cancelar<input name="reservationId" type="number" min="1" required /></label>
-                        <button type="submit" class="danger">Cancelar reserva</button>
-                    </form>
-                </article>
-            </div>
-        </section>
+        </div>
     </div>
 </section>
 
@@ -178,9 +154,5 @@
     <script src="~/js/portal.js" asp-append-version="true"></script>
     <script>
         SmartReservePortal.initPortalHome();
-        document.getElementById("logoutBtn")?.addEventListener("click", function () {
-            SmartReservePortal.clearToken();
-            window.location.href = "/login";
-        });
     </script>
 }

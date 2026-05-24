@@ -1,40 +1,21 @@
 (function (window) {
     const TOKEN_KEY = "smartreserve.jwt";
+    const state = {
+        selectedSite: null,
+        selectedUnits: [],
+        lastAvailability: [],
+        ratesByUnit: new Map()
+    };
+
+    function getToken() { return localStorage.getItem(TOKEN_KEY); }
+    function saveToken(token) { localStorage.setItem(TOKEN_KEY, token); }
+    function clearToken() { localStorage.removeItem(TOKEN_KEY); }
 
     function setMessage(elementId, message, isError) {
         const node = document.getElementById(elementId);
-        if (!node) {
-            return;
-        }
-
+        if (!node) return;
         node.textContent = message;
         node.style.color = isError ? "#b42318" : "#1f3d8a";
-    }
-
-    function setResult(elementId, data) {
-        const node = document.getElementById(elementId);
-        if (!node) {
-            return;
-        }
-
-        if (typeof data === "string") {
-            node.textContent = data;
-            return;
-        }
-
-        node.textContent = JSON.stringify(data, null, 2);
-    }
-
-    function getToken() {
-        return localStorage.getItem(TOKEN_KEY);
-    }
-
-    function saveToken(token) {
-        localStorage.setItem(TOKEN_KEY, token);
-    }
-
-    function clearToken() {
-        localStorage.removeItem(TOKEN_KEY);
     }
 
     function ensureAuthenticated(redirectToSignIn) {
@@ -43,16 +24,13 @@
             window.location.href = "/login";
             return false;
         }
-
         return hasToken;
     }
 
     async function apiCall(url, method, body) {
-        const token = getToken();
         const headers = { "Content-Type": "application/json" };
-        if (token) {
-            headers.Authorization = `Bearer ${token}`;
-        }
+        const token = getToken();
+        if (token) headers.Authorization = `Bearer ${token}`;
 
         const response = await fetch(url, {
             method,
@@ -62,43 +40,32 @@
 
         const text = await response.text();
         const data = text ? safeParseJson(text) : null;
-
         if (!response.ok) {
-            const fallback = { message: `Request failed (${response.status})` };
-            throw new Error((data && (data.message || data.Message)) || fallback.message);
+            throw new Error((data && (data.message || data.Message)) || `Request failed (${response.status})`);
         }
-
         return data;
     }
 
     function safeParseJson(text) {
-        try {
-            return JSON.parse(text);
-        } catch {
-            return { message: text };
-        }
+        try { return JSON.parse(text); } catch { return { message: text }; }
     }
 
     function bindSubmit(formId, handler) {
         const form = document.getElementById(formId);
-        if (!form) {
-            return;
-        }
-
+        if (!form) return;
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
             await handler(new FormData(form), form);
         });
     }
 
-    function toInt(value, defaultValue) {
-        const parsed = parseInt(value, 10);
-        return Number.isNaN(parsed) ? defaultValue : parsed;
+    function number(value, fallback) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
     }
 
-    function toDecimal(value, defaultValue) {
-        const parsed = parseFloat(value);
-        return Number.isNaN(parsed) ? defaultValue : parsed;
+    function money(value) {
+        return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(value || 0);
     }
 
     function initSignInPage() {
@@ -108,13 +75,11 @@
                     email: fd.get("email"),
                     password: fd.get("password")
                 });
-
                 if (result && result.token) {
                     saveToken(result.token);
                     window.location.href = "/dashboard";
                     return;
                 }
-
                 setMessage("authResult", "Login completed.", false);
             } catch (error) {
                 setMessage("authResult", error.message, true);
@@ -145,259 +110,286 @@
                 if (loginResult && loginResult.token) {
                     saveToken(loginResult.token);
                     window.location.href = "/dashboard";
-                    return;
                 }
-
-                setMessage("authResult", "Cuenta creada. Inicia sesión para continuar.", false);
             } catch (error) {
                 setMessage("authResult", error.message, true);
             }
         });
     }
 
-    function wireDashboardNavigation() {
-        const navLinks = Array.from(document.querySelectorAll(".sr-nav-link"));
-        const panels = Array.from(document.querySelectorAll(".sr-panel"));
+    function switchView(view) {
+        document.querySelectorAll(".legacy-view").forEach((el) => el.classList.remove("is-active"));
+        document.querySelectorAll(".legacy-nav-link").forEach((el) => el.classList.remove("is-active"));
+        document.getElementById(`view-${view}`)?.classList.add("is-active");
+        document.querySelector(`.legacy-nav-link[data-view=\"${view}\"]`)?.classList.add("is-active");
+    }
 
-        navLinks.forEach((button) => {
-            button.addEventListener("click", () => {
-                const panel = button.getAttribute("data-panel");
-                if (!panel) {
-                    return;
-                }
-
-                navLinks.forEach((n) => n.classList.remove("is-active"));
-                button.classList.add("is-active");
-
-                panels.forEach((p) => p.classList.remove("is-active"));
-                const selected = document.getElementById(`panel-${panel}`);
-                selected?.classList.add("is-active");
-            });
-        });
+    function switchTab(panel) {
+        document.querySelectorAll(".legacy-panel").forEach((el) => el.classList.remove("is-active"));
+        document.querySelectorAll(".legacy-tab").forEach((el) => el.classList.remove("is-active"));
+        document.getElementById(`panel-${panel}`)?.classList.add("is-active");
+        document.querySelector(`.legacy-tab[data-panel=\"${panel}\"]`)?.classList.add("is-active");
     }
 
     async function loadSites() {
-        const data = await apiCall("/api/tourist-sites", "GET");
-        setResult("sitesResult", data);
-        return data;
+        const rows = await apiCall("/api/tourist-sites", "GET");
+        const tbody = document.getElementById("sitesTableBody");
+        if (!tbody) return;
+
+        tbody.innerHTML = (rows || []).map((site) => `
+            <tr>
+                <td><div style="width:120px;height:70px;background:#cfcfcf"></div></td>
+                <td>${site.name || ""}</td>
+                <td>${site.description || "Sin descripción"}</td>
+                <td>${site.siteType || ""}</td>
+                <td>${site.city || ""}</td>
+                <td><button class="legacy-select-btn" data-site-id="${site.id}">Seleccionar</button></td>
+            </tr>
+        `).join("");
+
+        tbody.querySelectorAll("button[data-site-id]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const id = Number(btn.getAttribute("data-site-id"));
+                state.selectedSite = rows.find((x) => x.id === id) || null;
+                state.selectedUnits = [];
+                state.ratesByUnit.clear();
+                document.getElementById("selectedSiteTitle").textContent = state.selectedSite?.name || "Seleccione una sede";
+                document.getElementById("selectedSiteDescription").textContent = state.selectedSite?.description || "";
+                switchTab("dates");
+            });
+        });
     }
 
-    async function loadUnits() {
-        const data = await apiCall("/api/accommodation-units", "GET");
-        setResult("unitsResult", data);
-        return data;
+    async function loadMyReservations() {
+        const rows = await apiCall("/api/reservations/mine", "GET");
+        const tbody = document.getElementById("myReservationsBody");
+        if (!tbody) return;
+
+        tbody.innerHTML = (rows || []).map((r) => `
+            <tr>
+                <td>${r.touristSiteName || r.touristSite?.name || r.touristSiteId}</td>
+                <td>${(r.createdAtUtc || "").toString().slice(0, 10)}</td>
+                <td>${r.checkInDate || ""}</td>
+                <td>${r.checkOutDate || ""}</td>
+                <td>${r.totalPeople ?? ((r.adults || 0) + (r.children || 0))}</td>
+                <td>${(r.reservationUnits || []).length}</td>
+                <td>${money(r.totalAmount || 0)}</td>
+                <td><button class="legacy-select-btn" data-cancel-id="${r.id}">Cancelar</button></td>
+            </tr>
+        `).join("");
+
+        tbody.querySelectorAll("button[data-cancel-id]").forEach((btn) => {
+            btn.addEventListener("click", async () => {
+                try {
+                    await apiCall(`/api/reservations/${btn.getAttribute("data-cancel-id")}`, "DELETE");
+                    await loadMyReservations();
+                } catch (e) {
+                    alert(e.message);
+                }
+            });
+        });
     }
 
-    async function loadReservations() {
-        const data = await apiCall("/api/reservations/mine", "GET");
-        setResult("reservationsResult", data);
-        return data;
-    }
-
-    function renderOverview(stats) {
-        const statsNode = document.getElementById("overviewStats");
-        if (!statsNode) {
+    async function searchAvailability(fd) {
+        if (!state.selectedSite) {
+            alert("Primero selecciona una sede.");
             return;
         }
 
-        const cards = [
-            { label: "Sitios", value: stats.sites },
-            { label: "Unidades", value: stats.units },
-            { label: "Mis Reservas", value: stats.reservations }
-        ];
+        const payload = {
+            touristSiteId: state.selectedSite.id,
+            checkInDate: fd.get("checkInDate"),
+            checkOutDate: fd.get("checkOutDate"),
+            people: number(fd.get("people"), 1)
+        };
 
-        statsNode.innerHTML = cards
-            .map((card) => `<article class="sr-stat-card"><span>${card.label}</span><strong>${card.value}</strong></article>`)
-            .join("");
+        const availability = await apiCall("/api/availability/search", "POST", payload);
+        state.lastAvailability = availability || [];
+
+        const rates = await apiCall("/api/rates/search", "POST", {
+            touristSiteId: state.selectedSite.id,
+            referenceDate: fd.get("checkInDate"),
+            people: number(fd.get("people"), 1),
+            accommodationTypeId: 1
+        });
+
+        state.ratesByUnit.clear();
+        (rates || []).forEach((r) => {
+            if (r.accommodationUnitId) state.ratesByUnit.set(r.accommodationUnitId, r);
+        });
+
+        renderUnitsTable(number(fd.get("nights"), 1), number(fd.get("people"), 1));
     }
 
-    async function loadOverview() {
-        try {
-            const [sites, units, reservations] = await Promise.all([
-                loadSites(),
-                loadUnits(),
-                loadReservations()
-            ]);
+    function renderUnitsTable(nights, people) {
+        const tbody = document.getElementById("unitsTableBody");
+        if (!tbody) return;
 
-            renderOverview({
-                sites: Array.isArray(sites) ? sites.length : 0,
-                units: Array.isArray(units) ? units.length : 0,
-                reservations: Array.isArray(reservations) ? reservations.length : 0
-            });
+        tbody.innerHTML = state.lastAvailability.map((u) => {
+            const rate = state.ratesByUnit.get(u.accommodationUnitId || u.id);
+            const unitId = u.accommodationUnitId || u.id;
+            const name = u.accommodationUnitName || u.name || `Unidad ${unitId}`;
+            const capacity = u.maxCapacity || u.capacity || "-";
+            const base = rate?.basePrice || rate?.price || 0;
+            const available = u.available !== false;
 
-            setResult("overviewResult", {
-                sites: Array.isArray(sites) ? sites.slice(0, 2) : sites,
-                units: Array.isArray(units) ? units.slice(0, 2) : units,
-                reservations: Array.isArray(reservations) ? reservations.slice(0, 2) : reservations
+            return `
+                <tr>
+                    <td><button class="legacy-select-btn" data-detail-id="${unitId}">Detalle</button> ${name}</td>
+                    <td>${capacity}</td>
+                    <td>${money(base)}</td>
+                    <td>${available ? "✔" : "✖"}</td>
+                    <td><input type="checkbox" data-reserve-id="${unitId}" ${available ? "" : "disabled"}/></td>
+                </tr>
+            `;
+        }).join("");
+
+        tbody.querySelectorAll("button[data-detail-id]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const id = Number(btn.getAttribute("data-detail-id"));
+                const row = state.lastAvailability.find((x) => (x.accommodationUnitId || x.id) === id);
+                const rate = state.ratesByUnit.get(id);
+                document.getElementById("unitModalBody").innerHTML = `
+                    <p><strong>Habitación / Alojamiento:</strong> ${row?.accommodationUnitName || row?.name || id}</p>
+                    <p><strong>Capacidad:</strong> ${row?.maxCapacity || row?.capacity || "-"}</p>
+                    <p><strong>Tarifa día Ordinario:</strong> ${money(rate?.basePrice || 0)}</p>
+                    <p><strong>Tarifa día Especial:</strong> ${money(rate?.additionalPersonPrice || rate?.basePrice || 0)}</p>
+                `;
+                openModal("unitModal");
             });
-        } catch (error) {
-            setResult("overviewResult", error.message);
-        }
+        });
+
+        tbody.querySelectorAll("input[data-reserve-id]").forEach((cb) => {
+            cb.addEventListener("change", () => {
+                const id = Number(cb.getAttribute("data-reserve-id"));
+                if (cb.checked) {
+                    if (!state.selectedUnits.includes(id)) state.selectedUnits.push(id);
+                } else {
+                    state.selectedUnits = state.selectedUnits.filter((x) => x !== id);
+                }
+                updateSummary(nights, people);
+            });
+        });
+
+        updateSummary(nights, people);
     }
 
-    function bindDashboardActions() {
-        bindSubmit("siteCreateForm", async (fd, form) => {
-            try {
-                const payload = {
-                    name: fd.get("name"),
-                    city: fd.get("city"),
-                    siteType: fd.get("siteType"),
-                    description: fd.get("description") || null,
-                    maxCapacity: toInt(fd.get("maxCapacity"), 1),
-                    isActive: fd.get("isActive") === "on"
-                };
-
-                const created = await apiCall("/api/tourist-sites", "POST", payload);
-                setResult("sitesResult", { message: "Sitio creado", created });
-                form.reset();
-                await loadSites();
-                await loadOverview();
-            } catch (error) {
-                setResult("sitesResult", error.message);
-            }
+    function updateSummary(nights, people) {
+        const rooms = state.selectedUnits.length;
+        let total = 0;
+        state.selectedUnits.forEach((id) => {
+            const rate = state.ratesByUnit.get(id);
+            total += (rate?.basePrice || 0) * nights;
         });
 
-        bindSubmit("unitCreateForm", async (fd, form) => {
-            try {
-                const payload = {
-                    touristSiteId: toInt(fd.get("touristSiteId"), 0),
-                    accommodationTypeId: toInt(fd.get("accommodationTypeId"), 0),
-                    code: fd.get("code"),
-                    name: fd.get("name"),
-                    description: fd.get("description") || null,
-                    maxCapacity: toInt(fd.get("maxCapacity"), 1),
-                    bedroomCount: toInt(fd.get("bedroomCount"), 0),
-                    bathroomCount: toInt(fd.get("bathroomCount"), 0),
-                    hasKitchen: fd.get("hasKitchen") === "on",
-                    hasParking: fd.get("hasParking") === "on",
-                    isActive: fd.get("isActive") === "on"
-                };
+        document.getElementById("summaryRooms").textContent = String(rooms);
+        document.getElementById("summaryOrdinary").textContent = String(nights);
+        document.getElementById("summarySpecial").textContent = "0";
+        document.getElementById("summaryTotal").textContent = money(total);
 
-                const created = await apiCall("/api/accommodation-units", "POST", payload);
-                setResult("unitsResult", { message: "Unidad creada", created });
-                form.reset();
-                await loadUnits();
-                await loadOverview();
-            } catch (error) {
-                setResult("unitsResult", error.message);
-            }
+        document.getElementById("openConfirmBtn").disabled = rooms === 0;
+    }
+
+    function openModal(id) {
+        document.getElementById(id)?.classList.remove("hidden");
+    }
+
+    function closeModal(id) {
+        document.getElementById(id)?.classList.add("hidden");
+    }
+
+    function setupConfirmReservation() {
+        document.getElementById("openConfirmBtn")?.addEventListener("click", () => {
+            const checkIn = document.querySelector("#availabilityForm input[name='checkInDate']")?.value;
+            const checkOut = document.querySelector("#availabilityForm input[name='checkOutDate']")?.value;
+            const people = number(document.querySelector("#availabilityForm input[name='people']")?.value, 1);
+            const nights = number(document.querySelector("#availabilityForm input[name='nights']")?.value, 1);
+
+            document.getElementById("confirmBody").innerHTML = `
+                <p><strong>Fecha de Llegada:</strong> ${checkIn || ""}</p>
+                <p><strong>Fecha de Salida:</strong> ${checkOut || ""}</p>
+                <p><strong>Noches:</strong> ${nights}</p>
+                <p><strong>Personas:</strong> ${people}</p>
+                <p><strong>Habitaciones:</strong> ${state.selectedUnits.length}</p>
+                <p><strong>Valor Total:</strong> ${document.getElementById("summaryTotal")?.textContent || "$0"}</p>
+            `;
+            openModal("confirmModal");
         });
 
-        bindSubmit("availabilitySearchForm", async (fd) => {
+        document.getElementById("confirmReservationBtn")?.addEventListener("click", async () => {
             try {
-                const payload = {
-                    touristSiteId: toInt(fd.get("touristSiteId"), 0),
-                    checkInDate: fd.get("checkInDate"),
-                    checkOutDate: fd.get("checkOutDate"),
-                    people: fd.get("people") ? toInt(fd.get("people"), null) : null
-                };
+                if (!state.selectedSite || state.selectedUnits.length === 0) return;
+                const checkIn = document.querySelector("#availabilityForm input[name='checkInDate']")?.value;
+                const checkOut = document.querySelector("#availabilityForm input[name='checkOutDate']")?.value;
+                const people = number(document.querySelector("#availabilityForm input[name='people']")?.value, 1);
+                const contactFullName = document.querySelector("#availabilityForm input[name='contactFullName']")?.value || "";
+                const contactEmail = document.querySelector("#availabilityForm input[name='contactEmail']")?.value || "";
+                const contactPhone = document.querySelector("#availabilityForm input[name='contactPhone']")?.value || "";
 
-                const result = await apiCall("/api/availability/search", "POST", payload);
-                setResult("availabilityResult", result);
-            } catch (error) {
-                setResult("availabilityResult", error.message);
+                if (!contactFullName || !contactEmail) {
+                    alert("Completa nombre y email de contacto para reservar.");
+                    return;
+                }
+
+                const units = state.selectedUnits.map((id) => ({
+                    accommodationUnitId: id,
+                    quantity: 1,
+                    peopleCount: people,
+                    unitPrice: state.ratesByUnit.get(id)?.basePrice || 0
+                }));
+
+                await apiCall("/api/reservations", "POST", {
+                    touristSiteId: state.selectedSite.id,
+                    checkInDate: checkIn,
+                    checkOutDate: checkOut,
+                    adults: people,
+                    children: 0,
+                    contactFullName,
+                    contactEmail,
+                    contactPhone: contactPhone || null,
+                    units
+                });
+
+                closeModal("confirmModal");
+                state.selectedUnits = [];
+                await loadMyReservations();
+                switchView("my-reservations");
+            } catch (e) {
+                alert(e.message);
             }
         });
-
-        bindSubmit("ratesSearchForm", async (fd) => {
-            try {
-                const payload = {
-                    touristSiteId: toInt(fd.get("touristSiteId"), 0),
-                    referenceDate: fd.get("referenceDate"),
-                    people: toInt(fd.get("people"), 1),
-                    accommodationTypeId: toInt(fd.get("accommodationTypeId"), 0),
-                    accommodationUnitId: fd.get("accommodationUnitId") ? toInt(fd.get("accommodationUnitId"), null) : null
-                };
-
-                const result = await apiCall("/api/rates/search", "POST", payload);
-                setResult("ratesResult", { search: result });
-            } catch (error) {
-                setResult("ratesResult", error.message);
-            }
-        });
-
-        bindSubmit("ratesCalculateForm", async (fd) => {
-            try {
-                const payload = {
-                    touristSiteId: toInt(fd.get("touristSiteId"), 0),
-                    referenceDate: fd.get("referenceDate"),
-                    people: toInt(fd.get("people"), 1),
-                    accommodationTypeId: toInt(fd.get("accommodationTypeId"), 0),
-                    roomCount: toInt(fd.get("roomCount"), 1),
-                    nights: toInt(fd.get("nights"), 1)
-                };
-
-                const result = await apiCall("/api/rates/calculate", "POST", payload);
-                setResult("ratesResult", { calculate: result });
-            } catch (error) {
-                setResult("ratesResult", error.message);
-            }
-        });
-
-        bindSubmit("reservationCreateForm", async (fd, form) => {
-            try {
-                const payload = {
-                    touristSiteId: toInt(fd.get("touristSiteId"), 0),
-                    checkInDate: fd.get("checkInDate"),
-                    checkOutDate: fd.get("checkOutDate"),
-                    adults: toInt(fd.get("adults"), 1),
-                    children: toInt(fd.get("children"), 0),
-                    contactFullName: fd.get("contactFullName"),
-                    contactEmail: fd.get("contactEmail"),
-                    contactPhone: fd.get("contactPhone") || null,
-                    units: [
-                        {
-                            accommodationUnitId: toInt(fd.get("accommodationUnitId"), 0),
-                            quantity: toInt(fd.get("quantity"), 1),
-                            peopleCount: toInt(fd.get("peopleCount"), 1),
-                            unitPrice: toDecimal(fd.get("unitPrice"), 0)
-                        }
-                    ]
-                };
-
-                const created = await apiCall("/api/reservations", "POST", payload);
-                setResult("reservationsResult", { message: "Reserva creada", created });
-                form.reset();
-                await loadReservations();
-                await loadOverview();
-            } catch (error) {
-                setResult("reservationsResult", error.message);
-            }
-        });
-
-        bindSubmit("reservationCancelForm", async (fd, form) => {
-            try {
-                const reservationId = toInt(fd.get("reservationId"), 0);
-                await apiCall(`/api/reservations/${reservationId}`, "DELETE");
-                setResult("reservationsResult", { message: `Reserva ${reservationId} cancelada` });
-                form.reset();
-                await loadReservations();
-                await loadOverview();
-            } catch (error) {
-                setResult("reservationsResult", error.message);
-            }
-        });
-
-        document.getElementById("refreshSitesBtn")?.addEventListener("click", () => loadSites().catch((e) => setResult("sitesResult", e.message)));
-        document.getElementById("refreshUnitsBtn")?.addEventListener("click", () => loadUnits().catch((e) => setResult("unitsResult", e.message)));
-        document.getElementById("refreshReservationsBtn")?.addEventListener("click", () => loadReservations().catch((e) => setResult("reservationsResult", e.message)));
     }
 
     function initPortalHome() {
-        const authenticated = ensureAuthenticated(true);
-        if (!authenticated) {
-            return;
-        }
+        if (!ensureAuthenticated(true)) return;
 
-        wireDashboardNavigation();
-        bindDashboardActions();
-        loadOverview();
+        document.querySelectorAll(".legacy-nav-link[data-view]").forEach((btn) => {
+            btn.addEventListener("click", () => switchView(btn.getAttribute("data-view")));
+        });
+        document.querySelectorAll(".legacy-tab[data-panel]").forEach((btn) => {
+            btn.addEventListener("click", () => switchTab(btn.getAttribute("data-panel")));
+        });
 
-        const token = getToken();
-        const userPill = document.getElementById("userPill");
-        if (userPill && token) {
-            userPill.textContent = "Sesión activa";
-        }
+        document.getElementById("logoutBtn")?.addEventListener("click", () => {
+            clearToken();
+            window.location.href = "/login";
+        });
+
+        bindSubmit("availabilityForm", async (fd) => {
+            try {
+                await searchAvailability(fd);
+            } catch (e) {
+                alert(e.message);
+            }
+        });
+
+        document.querySelectorAll("[data-close]").forEach((btn) => {
+            btn.addEventListener("click", () => closeModal(btn.getAttribute("data-close")));
+        });
+
+        setupConfirmReservation();
+        loadSites();
+        loadMyReservations();
     }
 
     window.SmartReservePortal = {
