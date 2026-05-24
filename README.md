@@ -46,12 +46,12 @@ Applied principles:
 - Microsoft SQL Server 2022
 - ASP.NET Core Identity
 - JWT Bearer Authentication
-- Redis (cache/performance support)
 - Docker Compose
+- Docker (Railway-ready)
 
 ## Local Infrastructure
 
-`docker-compose.yml` defines the base services:
+`docker-compose.yml` defines the base local services:
 
 - SQL Server: `localhost:1433`
 - Redis: `localhost:6380`
@@ -147,7 +147,7 @@ Apply migrations manually:
 
 ```bash
 cd src/SistemaReservas.Web
-dotnet dotnet-ef database update
+dotnet ef database update
 ```
 
 ## Running the Application
@@ -156,6 +156,89 @@ dotnet dotnet-ef database update
 cd src/SistemaReservas.Web
 dotnet run
 ```
+
+## Docker (Production Image)
+
+The repository includes a multi-stage `.NET 8` Dockerfile at project root:
+
+- Build stage: restores and publishes `SistemaReservas.Web`.
+- Runtime stage: uses `mcr.microsoft.com/dotnet/aspnet:8.0`.
+- Entrypoint: `dotnet SistemaReservas.Web.dll`.
+
+Build image locally:
+
+```bash
+docker build -t smartreserve:latest .
+```
+
+Run locally (container):
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e PORT=8080 \
+  -e ConnectionStrings__DefaultConnection="Server=<HOST>,1433;Database=SmartReserveDb;User Id=<USER>;Password=<PASSWORD>;TrustServerCertificate=True;" \
+  -e JwtSettings__SecretKey="<YOUR_SECRET>" \
+  -e JwtSettings__Issuer="SmartReserve" \
+  -e JwtSettings__Audience="SmartReserve.Client" \
+  -e JwtSettings__ExpiryMinutes="120" \
+  smartreserve:latest
+```
+
+## Railway Deployment
+
+This project is ready for Railway using the root `Dockerfile`.
+
+### Required Railway Variables
+
+Set these environment variables in Railway:
+
+- `PORT` (Railway usually injects this automatically)
+- `ConnectionStrings__DefaultConnection`
+- `JwtSettings__SecretKey`
+- `JwtSettings__Issuer`
+- `JwtSettings__Audience`
+- `JwtSettings__ExpiryMinutes`
+
+Optional SMTP (if enabled in your environment):
+
+- `SmtpSettings__Host`
+- `SmtpSettings__Port`
+- `SmtpSettings__Username`
+- `SmtpSettings__Password`
+- `SmtpSettings__FromEmail`
+- `SmtpSettings__FromName`
+
+### Deploy Steps (Railway)
+
+1. Create a new project in Railway and connect this repository.
+2. Keep deployment mode as Dockerfile (root).
+3. Add the required environment variables.
+4. Deploy.
+5. Validate `/login` and API auth endpoints.
+
+## Current UI/Modules
+
+The current web app includes:
+
+- Public auth pages: `/login`, `/signup`
+- Authenticated dashboard: `/dashboard`
+- Reservation-focused modules in dashboard:
+  - Tourist sites list/selection
+  - Date-based availability search
+  - Rate lookup/calculation support
+  - Reservation confirmation flow
+  - My reservations list + cancellation
+
+Back-end APIs in active use:
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/tourist-sites`
+- `POST /api/availability/search`
+- `POST /api/rates/search`
+- `POST /api/reservations`
+- `GET /api/reservations/mine`
+- `DELETE /api/reservations/{id}`
 
 ## Secret Management (C#)
 

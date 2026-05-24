@@ -1,49 +1,24 @@
-# Stage 1: Build
-FROM node:20-alpine AS build
+# syntax=docker/dockerfile:1
 
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy csproj and restore as distinct layer
+COPY src/SistemaReservas.Web/SistemaReservas.Web.csproj src/SistemaReservas.Web/
+RUN dotnet restore src/SistemaReservas.Web/SistemaReservas.Web.csproj
+
+# Copy everything and publish
+COPY . .
+RUN dotnet publish src/SistemaReservas.Web/SistemaReservas.Web.csproj -c Release -o /app/publish /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
+COPY --from=build /app/publish .
 
-# Copy package files
-COPY package.json package-lock.json ./
+# Railway injects PORT dynamically. Fallback to 8080 for local container runs.
+ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT:-8080}
+ENV ASPNETCORE_ENVIRONMENT=Production
 
-# Install dependencies
-RUN npm install
+EXPOSE 8080
 
-# Copy prisma schema
-COPY prisma ./prisma/
-
-# Generate Prisma Client
-RUN npm run prisma:generate
-
-# Copy configuration files
-COPY tsconfig.json tsconfig.build.json nest-cli.json ./
-
-# Copy source code
-COPY src ./src
-
-# Build the application
-RUN npm run build
-
-# Stage 2: Production
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Copy package files
-COPY package.json package-lock.json ./
-
-# Install only production dependencies
-RUN npm i --omit=dev --ignore-scripts
-
-# Copy prisma schema and generate client
-COPY prisma ./prisma/
-RUN npm run prisma:generate
-
-# Copy built application from build stage
-COPY --from=build /app/dist ./dist
-
-# Expose the port (Railway will use $PORT)
-EXPOSE 3000
-
-# Start command
-CMD ["node", "dist/main"]
+ENTRYPOINT ["dotnet", "SistemaReservas.Web.dll"]
