@@ -157,6 +157,29 @@ cd src/SistemaReservas.Web
 dotnet run
 ```
 
+## Seed Data (TypeScript/JavaScript)
+
+Seed scripts are located in:
+
+- `src/database/seed/main.ts`
+
+What the seed includes:
+
+- Base tenant/business + main branch.
+- RBAC bootstrap (`access_roles`, `access_permissions`, `access_modules`, pivots).
+- Catalog bootstrap (`TouristSites`, `AccommodationTypes`, `Seasons`, `AccommodationUnits`, `RatePlans`).
+- Super admin user for login:
+  - Email: `superadmin@smartreserve.com`
+  - Password: `superadmin123`
+
+Run seed:
+
+```bash
+cd src/database/seed
+npm install
+CONNECTION_STRING="Server=localhost,1433;Database=SmartReserveDb;User Id=sa;Password=<YOUR_PASSWORD>;TrustServerCertificate=True;Encrypt=False;" npm run seed
+```
+
 ## Docker (Production Image)
 
 The repository includes a multi-stage `.NET 8` Dockerfile at project root:
